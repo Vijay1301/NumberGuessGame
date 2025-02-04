@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Guessing Game</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #0e0e0f, #1b1b1c);
+            color: white;
+            margin: 0;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            transition: transform 0.3s;
+        }
+        .container:hover {
+            transform: scale(1.02);
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        input {
+            padding: 12px;
+            width: 80%;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 18px;
+            outline: none;
+        }
+        button {
+            padding: 12px 25px;
+            background: #ff9a8b;
+            background: linear-gradient(45deg, #ff9a8b, #ff6a88, #ff99ac);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: 0.3s ease-in-out;
+        }
+        button:hover {
+            background: linear-gradient(45deg, #ff758c, #ff7eb3);
+            transform: scale(1.05);
+        }
+        #response {
+            margin-top: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .low {
+            background-color: rgba(255, 165, 0, 0.8);
+            color: white;
+        }
+        .high {
+            background-color: rgba(255, 0, 0, 0.8);
+            color: white;
+        }
+        .correct {
+            background-color: rgba(0, 255, 127, 0.8);
+            color: white;
+        }
+    </style>
+    <script>
+        let ws = new WebSocket("ws://localhost:3000/ws");
+
+        ws.onopen = function() {
+            document.getElementById("response").innerText = "Start guessing...";
+        };
+
+        ws.onmessage = function(event) {
+            let responseBox = document.getElementById("response");
+            responseBox.innerText = event.data;
+
+            if (event.data.includes("Too low")) {
+                responseBox.className = "low";
+            } else if (event.data.includes("Too high")) {
+                responseBox.className = "high";
+            } else if (event.data.includes("Congratulations")) {
+                responseBox.className = "correct";
+            } else {
+                responseBox.className = "";
+            }
+        };
+
+        function sendGuess() {
+            let guess = document.getElementById("guess").value;
+            if (guess.trim() !== "" && !isNaN(guess)) {
+                ws.send(guess);
+            } else {
+                let responseBox = document.getElementById("response");
+                responseBox.innerText = "Please enter a valid number!";
+                responseBox.className = "";
+            }
+            document.getElementById("guess").value = "";
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("guess").addEventListener("keypress", function(event) {
+                if (event.key === "Enter") {
+                    sendGuess();
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Guess the Number!</h1>
+        <input type="text" id="guess" placeholder="Enter a number (1-1000)">
+        <button onclick="sendGuess()">Submit</button>
+        <p id="response"></p>
+    </div>
+</body>
+</html>
